@@ -1,65 +1,64 @@
-/*
-  Greetings, algorithmics!
+var size = 100;
 
-  Your task today is to find the minimum path through a grid of numbers, top to bottom,
-  where at each row, you are permitted to move straight down, down and left, or down and right.
+var min = function() {
+	var args = Array.prototype.slice.call(arguments);
 
-  This is a famous problem for introducing Dynamic Programming, a technique for solving recursive
-  problems more optimally.  When we do DP, we try not to solve the same sub-problem twice, and
-  we build solutions from the bottom-up instead of the top-down.
+	args = args.filter(function(val) {
+		return !!val;
+	});
 
-  INPUT:  A two-dimensional grid of size NxN, where N is the `size` variable listed below.
-  OUTPUT: A single array, listing the columns that you pass through.  For example, [1, 2, 3..]
-          means that in row 0, you are in column 1; in row 1, you are in column 2, etc
-          The output should be of length equal to the `size` variable.
-
-  If you finish this problem early, and want a challenge, try to find a Dynamic Programming
-  solution to last meetup's making-change problem!  This is a little more challenging...
-*/
-
-var size = 15;
+	return Math.min.apply(null, args);
+};
 
 var findMinimumPath = function(input) {
+	// Calculate down:
+	for (var r = 0; r < size - 1; r++) { // for every row
+		for (var c = 0; c < size; c++) { // for every element in that row
+			//find its left and right neighbors
+			var left = input[r][c - 1];
+			var center = input[r][c];
+			var right = input[r][c + 1];
+			
+			// choose the minimum element of those three consecutive elements, 
+			// then update the row below with the choice.
+			input[r+1][c] += min(left, center, right);
+		}
+		console.log(input[r].toString());
+	}
+	console.log(input[size - 1].toString());
 
-  // Dynamic programming woo!
-  for (var row = size - 1; row > 0; row--) {
-    for (var col = 0; col < size; col++) {
+	// Calculate back up:
 
-      // `Choices` are three consecutive squares.
-      var currentRow = input[row];
-      var choices = currentRow.slice(col - 1, col + 2);
+	var result = [];
+	var smallest = Infinity;
+	var indexOfLowest;
 
-      // Update the square above these choices.
-      input[row - 1][col] += Math.min.apply(this, choices);
-    }
-  }
+	// Find the lowest value on the last row
+	var lastRow = input[size - 1];
+	smallest = min.apply(null, lastRow);
+	indexOfLowest = lastRow.indexOf(smallest);
 
-  // Below is just the greedy algorithm, on our updated array!
+	console.log("iol is: " + indexOfLowest);
+	result.unshift(indexOfLowest);
 
-  // Find the minimum square to start with, in the first row.
-  var path = [];
-  for (var i = 1, col = 0; i < size; i++) {
-    if (input[0][i] < input[0][col]) {
-      col = i;
-    }
-  }
-  path.push(col);
-  for (var row = 1; row < size; row++) {
+	for(r = size - 2; r >= 0; r--) { // for every row, starting one from lowest
+		// look up and find lowest neighbor
 
-    // Find the totals in the three squares below us.
-    var currentRow = input[row];
-    var choices = currentRow.slice(col - 1, col + 2);
-    var min = Math.min.apply(this, choices);
+		var left 	= [input[r][indexOfLowest - 1], indexOfLowest - 1];
+		var center 	= [input[r][indexOfLowest], indexOfLowest];
+		var right 	= [input[r][indexOfLowest + 1], indexOfLowest + 1];
 
-    // If the choice is to the left or right, change the current column
-    if (min == choices[0]) {
-      col--;
-    } else if (min == choices[2]) {
-      col++;
-    }
 
-    // Put the current column in our path.
-    path.push(col);
-  }
-  return path;
+		var minimum = min(left[0], center[0], right[0]);
+		if ( minimum === left[0]) {
+			indexOfLowest = left[1];	
+		} else if(minimum === center[0]) {
+			indexOfLowest = center[1];
+		} else if(minimum === right[0]) {
+			indexOfLowest = right[1];
+		}
+		 result.unshift(indexOfLowest);
+	}
+	console.log(result);
+	return result;
 };
